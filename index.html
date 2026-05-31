@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxe 3D Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #fff;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        #canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(10, 14, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 320px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .ui-container h1 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #ff6b6b, #ffd700, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .ui-container p {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .loading-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #4ecdc4;
+            margin-bottom: 15px;
+        }
+
+        .spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(78, 205, 196, 0.3);
+            border-top: 2px solid #4ecdc4;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .object-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .object-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .object-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .object-item.active {
+            background: rgba(78, 205, 196, 0.2);
+            border-color: #4ecdc4;
+        }
+
+        .object-name {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .object-cost {
+            font-size: 11px;
+            color: #ffd700;
+        }
+
+        .material-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .material-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 70px;
+        }
+
+        .material-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .material-btn.active {
+            background: #4ecdc4;
+            border-color: #4ecdc4;
+            color: #0a0e27;
+        }
+
+        .cost-display {
+            background: rgba(255, 215, 0, 0.1);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .cost-label {
+            font-size: 11px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .cost-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .total-cost {
+            font-size: 12px;
+            color: #888;
+            margin-top: 8px;
+        }
+
+        .controls-hint {
+            font-size: 11px;
+            color: #666;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .controls-hint strong {
+            color: #4ecdc4;
+        }
+
+        @media (max-width: 768px) {
+            .ui-container {
+                max-width: 100%;
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                padding: 15px;
+            }
+
+            .ui-container h1 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="ui-container">
+        <h1>Luxe Portfolio</h1>
+        <p id="status">
+            <span class="loading-indicator">
+                <span class="spinner"></span>
+                Loading configuration...
+            </span>
+        </p>
+        
+        <div class="object-list" id="objectList"></div>
+        
+        <div class="material-selector" id="materialSelector"></div>
+        
+        <div class="cost-display">
+            <div class="cost-label">Selected Item Cost</div>
+            <div class="cost-value" id="costValue">$0</div>
+            <div class="total-cost" id="totalCost">Total: $0</div>
+        </div>
+        
+        <div class="controls-hint">
+            <strong>Controls:</strong><br>
+            • Click objects to select<br>
+            • Drag to rotate<br>
+            • Scroll to zoom<br>
+            • Right-click to pan
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Global state
+        let scene, camera, renderer, controls;
+        let configData = null;
+        let objects3D = new Map();
+        let selectedObject = null;
+        let selectedMaterial = 'default';
+        let totalCost = 0;
+
+        // Initialize Three.js scene
+        async function initScene() {
+            // Scene setup
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('canvas'), antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setClearColor(0x0a0e27, 1);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFShadowShadowMap;
+
+            // Load configuration
+            updateStatus('Fetching configuration...');
+            await loadConfig();
+
+            if (!configData) {
+                updateStatus('Failed to load config');
+                return;
+            }
+
+            // Apply environment
+            applyEnvironment();
+
+            // Setup camera
+            const camConfig = configData.camera;
+            camera.position.set(...camConfig.position);
+            camera.lookAt(...camConfig.lookAt);
+
+            // Setup lighting
+            setupLighting();
+
+            // Create objects
+            createObjects();
+
+            // Setup controls
+            setupControls();
+
+            // Populate UI
+            populateUI();
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize);
+
+            // Start animation loop
+            updateStatus('Ready');
+            animate();
+        }
+
+        // Load configuration asynchronously
+        async function loadConfig() {
+            try {
+                const response = await fetch('config.json');
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                configData = await response.json();
+                console.log('Config loaded:', configData);
+                return true;
+            } catch (error) {
+                console.error('Error loading config:', error);
+                return false;
+            }
+        }
+
+        // Apply environment settings
+        function applyEnvironment() {
+            const env = configData.environment;
+            const bgColor = new THREE.Color(env.backgroundColor);
+            scene.background = bgColor;
+            scene.fog = new THREE.Fog(env.fogColor, env.fogNear, env.fogFar);
+        }
+
+        // Setup lighting
+        function setupLighting() {
+            const lighting = configData.lighting;
+
+            // Ambient light
+            const ambientLight = new THREE.AmbientLight(
+                lighting.ambientLight.color,
+                lighting.ambientLight.intensity
+            );
+            scene.add(ambientLight);
+
+            // Directional light
+            const dirLight = new THREE.DirectionalLight(
+                lighting.directionalLight.color,
+                lighting.directionalLight.intensity
+            );
+            dirLight.position.set(...lighting.directionalLight.position);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            scene.add(dirLight);
+
+            // Point lights
+            lighting.pointLights.forEach(pl => {
+                const pointLight = new THREE.PointLight(pl.color, pl.intensity, pl.distance);
+                pointLight.position.set(...pl.position);
+                scene.add(pointLight);
+            });
+        }
+
+        // Create 3D objects from config
+        function createObjects() {
+            configData.objects.forEach(objConfig => {
+                createObject(objConfig);
+            });
+        }
+
+        // Create individual object
+        function createObject(objConfig) {
+            let geometry;
+            const geoConfig = objConfig.geometry;
+
+            switch (objConfig.type) {
+                case 'sphere':
+                    geometry = new THREE.SphereGeometry(
+                        geoConfig.radius,
+                        geoConfig.widthSegments,
+                        geoConfig.heightSegments
+                    );
+                    break;
+                case 'box':
+                    geometry = new THREE.BoxGeometry(
+                        geoConfig.width,
+                        geoConfig.height,
+                        geoConfig.depth,
+                        geoConfig.widthSegments,
+                        geoConfig.heightSegments,
+                        geoConfig.depthSegments
+                    );
+                    break;
+                case 'torus':
+                    geometry = new THREE.TorusGeometry(
+                        geoConfig.radius,
+                        geoConfig.tube,
+                        geoConfig.radialSegments,
+                        geoConfig.tubularSegments
+                    );
+                    break;
+                default:
+                    return;
+            }
+
+            // Create materials
+            const materials = {};
+            Object.entries(objConfig.materials).forEach(([matName, matConfig]) => {
+                materials[matName] = new THREE.MeshStandardMaterial({
+                    color: matConfig.color,
+                    metalness: matConfig.metalness,
+                    roughness: matConfig.roughness
+                });
+            });
+
+            // Create mesh with default material
+            const mesh = new THREE.Mesh(geometry, materials.default);
+            mesh.position.set(...objConfig.position);
+            mesh.scale.set(...objConfig.scale);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+
+            // Store metadata
+            mesh.userData = {
+                id: objConfig.id,
+                name: objConfig.name,
+                cost: objConfig.cost,
+                currency: objConfig.currency,
+                materials: materials,
+                config: objConfig
+            };
+
+            scene.add(mesh);
+            objects3D.set(objConfig.id, mesh);
+            totalCost += objConfig.cost;
+        }
+
+        // Setup mouse controls
+        function setupControls() {
+            // Raycaster for picking
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            document.addEventListener('click', (event) => {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(Array.from(objects3D.values()));
+
+                if (intersects.length > 0) {
+                    selectObject(intersects[0].object);
+                }
+            });
+
+            // Orbit controls (simple version)
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            document.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging && e.buttons === 1) {
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+
+                    scene.rotation.y += deltaX * 0.01;
+                    scene.rotation.x += deltaY * 0.01;
+
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+
+            // Zoom with mouse wheel
+            document.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomSpeed = 0.1;
+                camera.position.z += e.deltaY * zoomSpeed * 0.01;
+                camera.position.z = Math.max(5, Math.min(50, camera.position.z));
+            }, { passive: false });
+        }
+
+        // Select object
+        function selectObject(mesh) {
+            if (selectedObject) {
+                selectedObject.material = selectedObject.userData.materials[selectedMaterial];
+            }
+
+            selectedObject = mesh;
+            selectedMaterial = 'default';
+
+            // Highlight selected object
+            const highlightMaterial = new THREE.MeshStandardMaterial({
+                color: mesh.userData.materials.default.color,
+                metalness: 0.9,
+                roughness: 0.1,
+                emissive: 0x4ecdc4,
+                emissiveIntensity: 0.3
+            });
+            mesh.material = highlightMaterial;
+
+            updateUI();
+            document.querySelectorAll('.object-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.id === mesh.userData.id);
+            });
+        }
+
+        // Switch material
+        function switchMaterial(materialName) {
+            if (!selectedObject) return;
+
+            selectedMaterial = materialName;
+            selectedObject.material = selectedObject.userData.materials[materialName];
+
+            document.querySelectorAll('.material-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.material === materialName);
+            });
+        }
+
+        // Populate UI elements
+        function populateUI() {
+            const objectList = document.getElementById('objectList');
+            const materialSelector = document.getElementById('materialSelector');
+
+            objectList.innerHTML = '';
+            materialSelector.innerHTML = '';
+
+            configData.objects.forEach(objConfig => {
+                const item = document.createElement('div');
+                item.className = 'object-item';
+                item.dataset.id = objConfig.id;
+                item.innerHTML = `
+                    <div class="object-name">${objConfig.name}</div>
+                    <div class="object-cost">${objConfig.currency} ${objConfig.cost.toLocaleString()}</div>
+                `;
+                item.addEventListener('click', () => {
+                    const mesh = objects3D.get(objConfig.id);
+                    if (mesh) selectObject(mesh);
+                });
+                objectList.appendChild(item);
+            });
+
+            if (selectedObject) {
+                const materials = Object.keys(selectedObject.userData.materials);
+                materials.forEach(matName => {
+                    const btn = document.createElement('button');
+                    btn.className = 'material-btn' + (matName === 'default' ? ' active' : '');
+                    btn.dataset.material = matName;
+                    btn.textContent = matName.charAt(0).toUpperCase() + matName.slice(1);
+                    btn.addEventListener('click', () => switchMaterial(matName));
+                    materialSelector.appendChild(btn);
+                });
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            if (!selectedObject) return;
+
+            const cost = selectedObject.userData.cost;
+            document.getElementById('costValue').textContent = `$${cost.toLocaleString()}`;
+            document.getElementById('totalCost').textContent = `Total: $${totalCost.toLocaleString()}`;
+
+            populateUI();
+        }
+
+        // Update status message
+        function updateStatus(message) {
+            document.getElementById('status').innerHTML = message;
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Auto-rotate if enabled
+            if (configData?.interactions.autoRotate) {
+                scene.rotation.y += configData.interactions.rotationSpeed;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        function onWindowResize() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(width, height);
+        }
+
+        // Start application
+        document.addEventListener('DOMContentLoaded', initScene);
+    </script>
+</body>
+</html>
