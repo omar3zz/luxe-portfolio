@@ -1,0 +1,140 @@
+{
+  "environment": {
+    "backgroundColor": "#0a0e27",
+    "fogColor": "#1a1f3a",
+    "fogNear": 5,
+    "fogFar": 50
+  },
+  "camera": {
+    "position": [0, 0, 15],
+    "lookAt": [0, 0, 0]
+  },
+  "lighting": {
+    "ambientLight": {
+      "color": "#ffffff",
+      "intensity": 0.6
+    },
+    "directionalLight": {
+      "color": "#ffffff",
+      "intensity": 0.8,
+      "position": [5, 10, 7]
+    },
+    "pointLights": [
+      {
+        "color": "#ff6b6b",
+        "intensity": 0.5,
+        "distance": 50,
+        "position": [-5, 5, 5]
+      },
+      {
+        "color": "#4ecdc4",
+        "intensity": 0.5,
+        "distance": 50,
+        "position": [5, 5, -5]
+      }
+    ]
+  },
+  "objects": [
+    {
+      "id": "sphere-1",
+      "name": "Premium Sphere",
+      "type": "sphere",
+      "cost": 500,
+      "currency": "$",
+      "position": [-3, 0, 0],
+      "scale": [1, 1, 1],
+      "geometry": {
+        "radius": 2,
+        "widthSegments": 32,
+        "heightSegments": 32
+      },
+      "materials": {
+        "default": {
+          "color": "#ff6b6b",
+          "metalness": 0.7,
+          "roughness": 0.2
+        },
+        "gold": {
+          "color": "#ffd700",
+          "metalness": 0.9,
+          "roughness": 0.1
+        },
+        "cyan": {
+          "color": "#4ecdc4",
+          "metalness": 0.8,
+          "roughness": 0.15
+        }
+      }
+    },
+    {
+      "id": "box-1",
+      "name": "Luxury Box",
+      "type": "box",
+      "cost": 750,
+      "currency": "$",
+      "position": [0, 0, 0],
+      "scale": [1, 1, 1],
+      "geometry": {
+        "width": 3,
+        "height": 3,
+        "depth": 3,
+        "widthSegments": 8,
+        "heightSegments": 8,
+        "depthSegments": 8
+      },
+      "materials": {
+        "default": {
+          "color": "#ffd700",
+          "metalness": 0.8,
+          "roughness": 0.2
+        },
+        "silver": {
+          "color": "#c0c0c0",
+          "metalness": 0.9,
+          "roughness": 0.1
+        },
+        "red": {
+          "color": "#ff6b6b",
+          "metalness": 0.6,
+          "roughness": 0.3
+        }
+      }
+    },
+    {
+      "id": "torus-1",
+      "name": "Elegant Torus",
+      "type": "torus",
+      "cost": 600,
+      "currency": "$",
+      "position": [3, 0, 0],
+      "scale": [1, 1, 1],
+      "geometry": {
+        "radius": 2,
+        "tube": 0.8,
+        "radialSegments": 16,
+        "tubularSegments": 100
+      },
+      "materials": {
+        "default": {
+          "color": "#4ecdc4",
+          "metalness": 0.7,
+          "roughness": 0.25
+        },
+        "bronze": {
+          "color": "#cd7f32",
+          "metalness": 0.8,
+          "roughness": 0.2
+        },
+        "purple": {
+          "color": "#9d4edd",
+          "metalness": 0.6,
+          "roughness": 0.3
+        }
+      }
+    }
+  ],
+  "interactions": {
+    "autoRotate": true,
+    "rotationSpeed": 0.002
+  }
+}
